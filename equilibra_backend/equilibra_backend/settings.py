@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     # Tu app
     'core',
     'users',
+    'chat',
 ]
 
 MIDDLEWARE = [
