@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from .models import Conversacion, Mensaje
+from .utils import analizar_mensaje
 
 class ChatMessageView(APIView):
     permission_classes = [IsAuthenticated]
@@ -32,6 +33,9 @@ class ChatMessageView(APIView):
             texto=texto_usuario,
             origen='usuario'
         )
+
+        # Realizar el análisis del mensaje
+        analisis_resultado = analizar_mensaje(texto_usuario)
         
         # Generar una respuesta dummy del ChatBot
         respuesta_dummy = "Gracias por tu mensaje. En breve te responderé."
@@ -55,5 +59,8 @@ class ChatMessageView(APIView):
                 'texto': mensaje_chatbot.texto,
                 'timestamp': mensaje_chatbot.timestamp,
                 'origen': mensaje_chatbot.origen,
+                'analisis': analisis_resultado
             }
         }, status=status.HTTP_200_OK)
+
+
