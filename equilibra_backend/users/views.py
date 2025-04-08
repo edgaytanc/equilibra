@@ -1,5 +1,5 @@
 from rest_framework import generics
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from .serializers import UserRegisterSerializer, UserProfileSerializer
 from django.contrib.auth.models import User
 
