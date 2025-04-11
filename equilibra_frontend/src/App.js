@@ -4,17 +4,30 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
 import Chat from './pages/Chat';
 import Profile from './pages/Profile';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
     <BrowserRouter>
-      {/* Puedes agregar un componente de navegación común aquí, como un Navbar */}
       <Routes>
-        {/* Define las rutas */}
         <Route path="/login" element={<Login />} />
-        <Route path="/chat" element={<Chat />} />
-        <Route path="/profile" element={<Profile />} />
-        {/* Ruta por defecto (puedes redirigir a /login o /chat) */}
+        <Route
+          path="/chat"
+          element={
+            <ProtectedRoute>
+              <Chat />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        {/* Redirige a /login si la ruta no coincide */}
         <Route path="*" element={<Login />} />
       </Routes>
     </BrowserRouter>

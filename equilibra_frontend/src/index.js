@@ -1,24 +1,16 @@
+// src/index.js
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
 import App from './App';
-import reportWebVitals from './reportWebVitals';
+import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 
-// Crea un tema personalizado (opcional)
+// Crea un tema (opcional)
 const theme = createTheme({
   palette: {
-    primary: {
-      main: '#1976d2', // Puedes cambiar este color
-    },
-    secondary: {
-      main: '#dc004e', // Y este también
-    },
-  },
-  typography: {
-    // Personaliza la tipografía si lo deseas
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    primary: { main: '#1976d2' },
+    secondary: { main: '#dc004e' },
   },
 });
 
@@ -26,11 +18,8 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <ThemeProvider theme={theme}>
     <CssBaseline />
-    <App />
+    <AuthProvider>
+      <App />
+    </AuthProvider>
   </ThemeProvider>
 );
-
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
