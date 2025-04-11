@@ -1,64 +1,54 @@
 // src/pages/Profile.js
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Box, TextField, Button, Paper } from '@mui/material';
+import { Container, Typography, Paper, Box, TextField, Button } from '@mui/material';
 import axios from 'axios';
 
 const Profile = () => {
-  // Estado para almacenar la información del perfil
-  const [profile, setProfile] = useState({
-    id: '',
+  const [user, setUser] = useState({
     username: '',
     email: '',
     first_name: '',
     last_name: '',
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [message, setMessage] = useState('');
 
-  // Función para obtener los datos del perfil del usuario al cargar el componente
+  const token = localStorage.getItem('accessToken');
+
   useEffect(() => {
     const fetchProfile = async () => {
       setLoading(true);
       try {
-        const token = localStorage.getItem('token'); // Se asume que el token se almacena en localStorage
         const response = await axios.get('http://localhost:8000/api/users/profile/', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
-        setProfile(response.data);
-      } catch (err) {
-        setError('Error al cargar la información del perfil.');
+        setUser(response.data);
+      } catch (error) {
+        console.error('Error al cargar el perfil:', error);
       }
       setLoading(false);
     };
 
     fetchProfile();
-  }, []);
+  }, [token]);
 
-  // Función para actualizar los valores del formulario
   const handleChange = (e) => {
-    setProfile({ ...profile, [e.target.name]: e.target.value });
+    setUser({ ...user, [e.target.name]: e.target.value });
   };
 
-  // Función para guardar los cambios en el perfil
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
-    setSuccess('');
+    setMessage('');
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.put('http://localhost:8000/api/users/profile/', profile, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const response = await axios.put('http://localhost:8000/api/users/profile/', user, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      setProfile(response.data);
-      setSuccess('Perfil actualizado correctamente.');
-    } catch (err) {
-      setError('Error al actualizar el perfil.');
+      setUser(response.data);
+      setMessage('Perfil actualizado correctamente.');
+    } catch (error) {
+      console.error('Error al actualizar el perfil:', error);
+      setMessage('Error al actualizar el perfil.');
     }
     setLoading(false);
   };
@@ -69,21 +59,20 @@ const Profile = () => {
         <Typography variant="h5" gutterBottom>
           Mi Perfil
         </Typography>
-        {error && (
-          <Typography variant="body2" color="error" sx={{ mb: 2 }}>
-            {error}
-          </Typography>
-        )}
-        {success && (
-          <Typography variant="body2" color="success.main" sx={{ mb: 2 }}>
-            {success}
+        {message && (
+          <Typography
+            variant="body2"
+            color={message.startsWith('Error') ? 'error' : 'success.main'}
+            sx={{ mb: 2 }}
+          >
+            {message}
           </Typography>
         )}
         <Box component="form" onSubmit={handleSubmit} noValidate>
           <TextField
             label="Usuario"
             name="username"
-            value={profile.username}
+            value={user.username}
             fullWidth
             margin="normal"
             disabled
@@ -91,7 +80,7 @@ const Profile = () => {
           <TextField
             label="Correo electrónico"
             name="email"
-            value={profile.email}
+            value={user.email}
             onChange={handleChange}
             fullWidth
             margin="normal"
@@ -99,7 +88,7 @@ const Profile = () => {
           <TextField
             label="Nombre"
             name="first_name"
-            value={profile.first_name}
+            value={user.first_name}
             onChange={handleChange}
             fullWidth
             margin="normal"
@@ -107,19 +96,12 @@ const Profile = () => {
           <TextField
             label="Apellido"
             name="last_name"
-            value={profile.last_name}
+            value={user.last_name}
             onChange={handleChange}
             fullWidth
             margin="normal"
           />
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            fullWidth
-            sx={{ mt: 2 }}
-            disabled={loading}
-          >
+          <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>
             {loading ? 'Guardando...' : 'Guardar Cambios'}
           </Button>
         </Box>

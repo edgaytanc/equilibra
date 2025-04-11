@@ -5,10 +5,12 @@ import Login from './pages/Login';
 import Chat from './pages/Chat';
 import Profile from './pages/Profile';
 import ProtectedRoute from './components/ProtectedRoute';
+import Header from './components/Header';
 
 function App() {
   return (
     <BrowserRouter>
+      <Header />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route
