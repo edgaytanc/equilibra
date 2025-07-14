@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Chatbot de Apoyo{% endblock %}</title>
+    <style>
+        body { font-family: sans-serif; margin: 0; background-color: #f4f7f6; }
+        .navbar { background-color: #004d40; padding: 10px 20px; color: white; display: flex; justify-content: space-between; align-items: center; }
+        .navbar a { color: white; text-decoration: none; padding: 8px 15px; }
+        .navbar a:hover { background-color: #00796b; border-radius: 4px; }
+        .content { margin: 20px; }
+        .flash-message { padding: 15px; margin-bottom: 20px; border-radius: 4px; color: #155724; background-color: #d4edda; border: 1px solid #c3e6cb; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="{{ url_for('main.home') }}"><h1>Elena</h1></a>
+        <div>
+            {% if current_user.is_authenticated %}
+                <span>Hola, {{ current_user.username }} ({{ current_user.role }})</span>
+                {% if current_user.role == 'psychologist' %}
+                    <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+                {% endif %}
+                <a href="{{ url_for('auth.logout') }}">Cerrar Sesión</a>
+            {% else %}
+                <a href="{{ url_for('auth.login') }}">Iniciar Sesión</a>
+                <a href="{{ url_for('auth.register') }}">Registrarse</a>
+            {% endif %}
+        </div>
+    </nav>
+    <main class="content">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="flash-message">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

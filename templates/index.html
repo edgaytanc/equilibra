@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Chat con Kai{% endblock %}
+
+{% block content %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='chat_styles.css') }}"> <style>
+        /* Pega aquí los estilos del chat del prototipo anterior */
+        .chat-container { width: 90%; max-width: 800px; margin: auto; height: 70vh; background: white; box-shadow: 0 0 20px rgba(0,0,0,0.1); display: flex; flex-direction: column; border-radius: 8px; }
+        .chat-header { background: #007a7a; color: white; padding: 15px; text-align: center; border-radius: 8px 8px 0 0; }
+        .chat-window { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .message { padding: 10px 15px; border-radius: 18px; max-width: 80%; line-height: 1.4; }
+        .user { background-color: #dcf8c6; align-self: flex-end; }
+        .bot { background-color: #f1f0f0; align-self: flex-start; }
+        .chat-input { display: flex; padding: 15px; border-top: 1px solid #ddd; }
+        #message-input { flex-grow: 1; border: 1px solid #ccc; border-radius: 20px; padding: 10px 15px; font-size: 16px; }
+        #send-button { background: #007a7a; color: white; border: none; border-radius: 50%; width: 45px; height: 45px; margin-left: 10px; cursor: pointer; font-size: 20px; }
+        .detector-info { text-align: center; padding: 5px; background: #eee; font-size: 12px; color: #555; }
+    </style>
+    <div class="chat-container">
+        <div class="detector-info">Puntuación de Ansiedad (NEG): <span id="anxiety-score">0.00</span></div>
+        <div class="chat-window" id="chat-window">
+            {% if not messages %}
+                <div class="message bot">Hola, soy Kai. Estoy aquí para escucharte.</div>
+            {% else %}
+                {% for msg in messages %}
+                    <div class="message {{ msg.sender }}">{{ msg.content | safe }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        <form class="chat-input" id="chat-form">
+            <input type="text" id="message-input" placeholder="Escribe tu mensaje aquí..." autocomplete="off" autofocus>
+            <button id="send-button" type="submit">➤</button>
+        </form>
+    </div>
+
+    <script>
+        // Pega aquí el script de JS del prototipo anterior
+        const chatForm = document.getElementById('chat-form');
+        const messageInput = document.getElementById('message-input');
+        const chatWindow = document.getElementById('chat-window');
+        const anxietyScoreSpan = document.getElementById('anxiety-score');
+
+        // Auto-scroll al cargar
+        window.onload = () => {
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        };
+
+        chatForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const userMessage = messageInput.value.trim();
+            if (!userMessage) return;
+
+            appendMessage(userMessage, 'user');
+            messageInput.value = '';
+
+            const response = await fetch("{{ url_for('main.chat') }}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: userMessage })
+            });
+            const data = await response.json();
+            
+            appendMessage(data.bot_response, 'bot');
+            anxietyScoreSpan.textContent = data.anxiety_score;
+        });
+
+        function appendMessage(message, sender) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', sender);
+            messageElement.innerHTML = message;
+            chatWindow.appendChild(messageElement);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+            return messageElement;
+        }
+    </script>
+{% endblock %}

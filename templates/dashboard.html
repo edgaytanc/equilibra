@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard de Psicólogo{% endblock %}
+
+{% block content %}
+    <h2>Pacientes que Requieren Revisión</h2>
+    <hr>
+    {% if users %}
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr style="background-color: #f2f2f2;">
+                <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Nombre de Usuario</th>
+                <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Acciones</th>
+            </tr>
+            {% for user in users %}
+            <tr>
+                <td style="padding: 8px; border: 1px solid #ddd;">{{ user.username }}</td>
+                <td style="padding: 8px; border: 1px solid #ddd;">
+                    <a href="{{ url_for('main.view_case', user_id=user.id) }}">Ver Conversación</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No hay pacientes que requieran revisión en este momento.</p>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Caso de {{ patient.username }}{% endblock %}
+
+{% block content %}
+    <style>
+        /* Reutilizamos los estilos del chat para la vista de conversación */
+        .chat-window { height: 65vh; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; border: 1px solid #eee; background: white; border-radius: 8px;}
+        .message { padding: 10px 15px; border-radius: 18px; max-width: 80%; line-height: 1.4; }
+        .user { background-color: #dcf8c6; align-self: flex-end; }
+        .bot { background-color: #f1f0f0; align-self: flex-start; }
+    </style>
+    
+    <h2>Historial de Conversación de: <strong>{{ patient.username }}</strong></h2>
+    <p>Estado actual: {{ patient.status }}</p>
+    <a href="{{ url_for('main.dashboard') }}">&larr; Volver al Dashboard</a>
+    <hr>
+
+    <div class="chat-window">
+        {% for msg in messages %}
+            <div class="message {{ msg.sender }}">{{ msg.content | safe }}</div>
+        {% endfor %}
+    </div>
+{% endblock %}
