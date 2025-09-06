@@ -44,7 +44,7 @@ def send_email_notification(patient_username):
         if psychologist:
             # Para este demo, asumimos que el username del psicólogo es un email válido.
             # En un sistema real, el modelo User tendría un campo 'email'.
-            recipient_email = "edgaytanc@gmail.com"  # <-- CAMBIA ESTO A TU EMAIL PARA PROBAR
+            recipient_email = "danyr7196@gmail.com"  # <-- CAMBIA ESTO A TU EMAIL PARA PROBAR
             
             subject = f"[Equilibra] Nuevo Caso Requiere Revisión: {patient_username}"
             body = f"""
