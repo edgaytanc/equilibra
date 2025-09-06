@@ -1,0 +1,48 @@
+# Este archivo define los servicios que componen tu aplicación.
+# 'version' especifica la sintaxis del archivo que estamos usando.
+version: '3.8'
+
+services:
+  # 1. El servicio de Redis
+  # Este es el más simple, solo levanta la imagen oficial de Redis.
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379" # Mapea el puerto para que podamos conectarnos si es necesario.
+
+  # 2. El servicio de la aplicación web (Flask/Gunicorn)
+  web:
+    # 'build: .' le dice a Compose que construya una imagen usando
+    # el Dockerfile que se encuentra en el directorio actual.
+    build: .
+    # 'command' sobreescribe el CMD del Dockerfile. Aquí usamos Gunicorn.
+    command: gunicorn --bind 0.0.0.0:8000 --timeout 120 app:app
+    # 'volumes' monta nuestro código local dentro del contenedor.
+    # Si haces un cambio en el código, Gunicorn lo reiniciará automáticamente.
+    volumes:
+      - .:/app
+    # Mapea el puerto 8000 del contenedor al puerto 8000 de tu máquina.
+    ports:
+      - "8000:8000"
+    # 'env_file' le pasa todas nuestras claves secretas del archivo .env.
+    env_file:
+      - .env
+    # 'depends_on' asegura que el servicio de Redis se inicie antes que la app web.
+    depends_on:
+      - redis
+
+  # 3. El servicio del trabajador Celery
+  worker:
+    # También construye la imagen a partir del mismo Dockerfile.
+    build: .
+    # Pero ejecuta un comando diferente: el que inicia el trabajador Celery.
+    command: celery -A tasks.celery worker --loglevel=info
+    # También monta el código para ver los cambios en tiempo real.
+    volumes:
+      - .:/app
+    # También necesita las variables de entorno para conectarse a Redis y Mail.
+    env_file:
+      - .env
+    # Y también debe esperar a que Redis esté listo.
+    depends_on:
+      - redis

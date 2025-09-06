@@ -70,11 +70,11 @@ Si es la primera vez que ejecutas el proyecto, necesitas inicializar la base de 
     flask db migrate -m "Initial migration"
     flask db upgrade```
 
-**b. Poner en marcha el servidor**
+**b. Poner en marcha el servidor de forma local**
 Finalmente, inicia el servidor de desarrollo de Flask:
 
     ```Terminal
-        flask run```
+        gunicorn app:app```
 
 La aplicación estará disponible en http://127.0.0.1:5000.
 

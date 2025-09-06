@@ -1,10 +1,16 @@
 # app.py
 import os
+from dotenv import load_dotenv
+
+# Cargar las variables de entorno del archivo .env al inicio
+load_dotenv()
+
 import google.generativeai as genai
-from flask import Flask, request, jsonify, render_template, Blueprint, redirect, url_for
+from flask import Flask, request, jsonify, render_template, Blueprint, redirect, url_for, flash
 from transformers import pipeline
 from flask_login import LoginManager, login_required, current_user
 from flask_migrate import Migrate
+from flask_mail import Mail
 
 # Importar modelos y blueprints
 from models import db, User, Message
@@ -12,15 +18,29 @@ from auth import auth_bp
 
 # --- CONFIGURACIÓN DE LA APP ---
 app = Flask(__name__)
-# Necesitas una clave secreta para las sesiones de usuario
-app.config['SECRET_KEY'] = 'una-clave-secreta-muy-dificil-de-adivinar'
-# Configuración de la base de datos
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chatbot.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# Usamos .from_mapping para cargar toda la configuración de una vez.
+# Esto es más limpio y evita reescribir app.config.
+app.config.from_mapping(
+    SECRET_KEY = os.getenv('SECRET_KEY'),
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL'),
+    SQLALCHEMY_TRACK_MODIFICATIONS = False,
+    # Configuración para Celery (leída desde .env)
+    CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL'),
+    CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND'),
+    # Configuración para Flask-Mail (leída desde .env)
+    MAIL_SERVER = os.getenv('MAIL_SERVER'),
+    MAIL_PORT = int(os.getenv('MAIL_PORT', 587)),
+    MAIL_USE_TLS = os.getenv('MAIL_USE_TLS', 'true').lower() in ['true', '1', 't'],
+    MAIL_USERNAME = os.getenv('MAIL_USERNAME'),
+    MAIL_PASSWORD = os.getenv('MAIL_PASSWORD'),
+    MAIL_DEFAULT_SENDER = os.getenv('MAIL_DEFAULT_SENDER')
+)
+
 
 # --- INICIALIZACIÓN DE EXTENSIONES ---
 db.init_app(app)
 migrate = Migrate(app, db) # Para gestionar cambios en la BD
+mail = Mail(app) # Inicializa Flask-Mail con la app
 
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login' # Página a la que se redirige si no se ha iniciado sesión
@@ -30,13 +50,17 @@ login_manager.init_app(app)
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# --- CARGA DE MODELOS DE IA (igual que antes) ---
+# --- CARGA DE MODELOS DE IA ---
 print("Cargando el modelo de detección de sentimientos...")
 detector = pipeline('sentiment-analysis', model='pysentimiento/robertuito-sentiment-analysis')
 print("Modelo cargado.")
 
 try:
-    genai.configure(api_key="AIzaSyBm_devxD8dMh29wTWaZ2D5Qnig4hQIeN8") # <-- REEMPLAZA ESTO
+    # Leemos la API key desde la variable de entorno
+    gemini_api_key = os.getenv('GEMINI_API_KEY')
+    if not gemini_api_key:
+        raise ValueError("No se encontró la API Key de Gemini en el archivo .env")
+    genai.configure(api_key=gemini_api_key)
     model_gemini = genai.GenerativeModel('gemini-1.5-flash')
     print("Conexión con Gemini API exitosa.")
 except Exception as e:
@@ -79,69 +103,58 @@ def chat():
     la respuesta al frontend.
     """
     # 1. RECIBIR Y GUARDAR EL MENSAJE DEL USUARIO
-    # ----------------------------------------------------
     user_message_content = request.json.get("message")
     if not user_message_content:
         return jsonify({"error": "No se recibió ningún mensaje."}), 400
 
-    # Creamos el objeto Message para el usuario y lo añadimos a la sesión de la BD
     user_message = Message(content=user_message_content, sender='user', author=current_user)
     db.session.add(user_message)
 
 
     # 2. DETECCIÓN DE ANSIEDAD/NEGATIVIDAD
-    # ----------------------------------------------------
     detection_result = detector(user_message_content)[0]
     anxiety_score = detection_result['score'] if detection_result['label'] == 'NEG' else 0.0
 
 
     # 3. GENERACIÓN DE LA RESPUESTA DEL CHATBOT (GEMINI)
-    # ----------------------------------------------------
     bot_response_text = "Lo siento, estoy teniendo problemas para conectar en este momento. Por favor, intenta de nuevo más tarde."
     if model_gemini:
       try:
-          # El prompt de sistema le da la personalidad y las reglas a la IA
           full_prompt = SYSTEM_PROMPT + f"\n\nUsuario: {user_message_content}\nKai:"
           response = model_gemini.generate_content(full_prompt)
           bot_response_text = response.text
       except Exception as e:
           print(f"Error al generar respuesta de Gemini: {e}")
-          # El mensaje de error por defecto ya está asignado arriba
 
-    # Creamos el objeto Message para la respuesta del bot
     bot_message = Message(content=bot_response_text, sender='bot', author=current_user)
     db.session.add(bot_message)
 
 
-    # 4. LÓGICA DE REMISIÓN AUTOMÁTICA
-    # ----------------------------------------------------
-    # Solo se aplica a usuarios con rol 'paciente' y que no hayan sido marcados previamente
+    # 4. LÓGICA DE REMISIÓN Y NOTIFICACIÓN
     if current_user.role == 'patient' and current_user.status == 'active':
-        # Obtenemos los últimos 10 mensajes del usuario para tener contexto
         last_user_messages = Message.query.filter_by(user_id=current_user.id, sender='user').order_by(Message.timestamp.desc()).limit(10).all()
         
-        # Evaluamos si el usuario tiene un historial mínimo de 5 mensajes
         if len(last_user_messages) >= 5:
             negative_count = 0
-            # Contamos cuántos de esos mensajes tienen un alto sentimiento negativo
             for msg in last_user_messages:
                 score = detector(msg.content)[0]
-                # Usamos un umbral para considerar un mensaje como "muy negativo"
                 if score['label'] == 'NEG' and score['score'] > 0.7:
                     negative_count += 1
             
-            # Si 3 o más de los últimos mensajes son muy negativos, marcamos al usuario
             if negative_count >= 3:
                 current_user.status = 'requires_review'
                 print(f"ATENCIÓN: Usuario '{current_user.username}' ha sido marcado para revisión.")
-
+                
+                # --- INICIO: LLAMADA A LA TAREA ASÍNCRONA ---
+                # Importamos la tarea aquí para evitar problemas de importación circular
+                from tasks import send_email_notification
+                # Usamos .delay() para poner la tarea en la cola de Redis sin bloquear la app
+                send_email_notification.delay(patient_username=current_user.username)
+                # --- FIN: LLAMADA A LA TAREA ASÍNCRONA ---
 
     # 5. GUARDAR CAMBIOS Y DEVOLVER RESPUESTA
-    # ----------------------------------------------------
-    # Con un solo commit, guardamos el mensaje del usuario, el del bot y el posible cambio de estado
     db.session.commit()
 
-    # Devolvemos la respuesta al frontend en formato JSON
     return jsonify({
         "bot_response": bot_response_text,
         "anxiety_score": f"{anxiety_score:.2f}"
@@ -150,12 +163,10 @@ def chat():
 @main_bp.route('/dashboard')
 @login_required
 def dashboard():
-    # Seguridad: Solo los psicólogos pueden ver esta página
     if current_user.role != 'psychologist':
         flash('Acceso no autorizado.')
         return redirect(url_for('main.chat_page'))
     
-    # Buscamos a todos los pacientes que necesitan revisión
     flagged_users = User.query.filter_by(role='patient', status='requires_review').all()
     
     return render_template('dashboard.html', users=flagged_users)
@@ -164,12 +175,10 @@ def dashboard():
 @main_bp.route('/case/<int:user_id>')
 @login_required
 def view_case(user_id):
-    # Seguridad: Solo los psicólogos pueden ver casos
     if current_user.role != 'psychologist':
         flash('Acceso no autorizado.')
         return redirect(url_for('main.chat_page'))
         
-    # Obtenemos al paciente y sus mensajes
     patient = User.query.get_or_404(user_id)
     messages = Message.query.filter_by(user_id=patient.id).order_by(Message.timestamp.asc()).all()
     

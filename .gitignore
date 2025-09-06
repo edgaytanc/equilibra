@@ -1,0 +1,14 @@
+# Entorno virtual
+env/
+venv/
+*.pyc
+__pycache__/
+
+# Archivo de secretos
+#.env
+
+# Base de datos local
+#chatbot.db
+
+# Archivos de instancia de Flask
+instance/

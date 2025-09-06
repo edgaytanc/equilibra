@@ -1,0 +1,24 @@
+# Ignorar el entorno virtual local
+env/
+venv/
+
+# Ignorar archivos de caché de Python
+__pycache__/
+*.pyc
+
+# Ignorar la base de datos local (la de producción será otra)
+# *.db
+# instance/
+
+# Archivos de configuración de IDE y Git
+.vscode/
+.idea/
+.git
+.gitignore
+
+# Archivo de secretos (nunca debe estar en la imagen)
+# .env
+
+# Archivos de Docker
+# Dockerfile
+.dockerignore
