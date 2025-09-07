@@ -1,0 +1,51 @@
+# Este archivo le dice a Render cómo construir y desplegar tu aplicación.
+# Se basa directamente en tu archivo docker-compose.yml.
+services:
+  # 1. El servicio de Redis
+  # Render ofrece Redis como un servicio gestionado, lo cual es más robusto.
+  - type: redis
+    name: equilibra-redis
+    plan: free # Elige el plan gratuito para empezar
+
+  # 2. El servicio de la aplicación web (Gunicorn)
+  - type: web
+    name: equilibra-web
+    plan: free # El plan gratuito puede ser lento al arrancar, pero es funcional
+    env: docker # Le decimos a Render que use nuestro Dockerfile
+    autoDeploy: true # Se redespliega automáticamente con cada 'git push' a la rama main
+    healthCheckPath: /login # Render verificará esta ruta para saber si la app está sana
+    envVars:
+      # Render gestiona las variables de entorno de forma segura en su dashboard.
+      # Aquí solo le decimos que necesita la URL de Redis.
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: equilibra-redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: equilibra-redis
+          property: connectionString
+      # ¡IMPORTANTE! Debes añadir el resto de tus variables de entorno
+      # (SECRET_KEY, GEMINI_API_KEY, MAIL_*, etc.) en el dashboard de Render.
+
+  # 3. El servicio del trabajador Celery
+  - type: worker
+    name: equilibra-worker
+    plan: free
+    env: docker
+    autoDeploy: true
+    envVars:
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: equilibra-redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: equilibra-redis
+          property: connectionString
+      # El worker también necesita acceso a todas las demás variables de entorno.
+
