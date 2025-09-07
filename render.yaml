@@ -6,6 +6,10 @@ services:
   - type: redis
     name: equilibra-redis
     plan: free # Elige el plan gratuito para empezar
+    # --- LÍNEA AÑADIDA ---
+    # Esto permite que tus otros servicios de Render (web y worker) se conecten a Redis.
+    # 0.0.0.0/0 en este contexto es seguro y se refiere a la red interna de Render.
+    ipAllowList: [] # Permitir acceso desde cualquier servicio dentro de tu cuenta de Render
 
   # 2. El servicio de la aplicación web (Gunicorn)
   - type: web
@@ -48,4 +52,19 @@ services:
           name: equilibra-redis
           property: connectionString
       # El worker también necesita acceso a todas las demás variables de entorno.
+```
+
+**Nota sobre `ipAllowList: []`:** Aunque `0.0.0.0/0` normalmente significa "abierto a todo internet", en el contexto de la `ipAllowList` de Render para servicios privados, una lista vacía `[]` se interpreta como "accesible por otros servicios dentro de la misma cuenta", lo cual es exactamente lo que necesitamos y es seguro.
+
+#### **Paso 2: Sube el Cambio a GitHub**
+
+Ahora que has corregido el archivo, necesitas subirlo a tu repositorio para que Render pueda verlo.
+
+1.  Abre tu terminal en la raíz del proyecto.
+2.  Ejecuta los siguientes comandos de Git:
+    ```bash
+    git add render.yaml
+    git commit -m "fix: Add IP allow list for Redis on Render"
+    git push origin main
+    
 
