@@ -2,6 +2,11 @@
 import os
 from dotenv import load_dotenv
 
+from models import db, User, Message
+from auth import auth_bp
+
+from admin import admin_bp
+
 # Cargar las variables de entorno del archivo .env al inicio
 load_dotenv()
 
@@ -190,6 +195,8 @@ def view_case(user_id):
 # Registrar los Blueprints
 app.register_blueprint(auth_bp)
 app.register_blueprint(main_bp)
+
+app.register_blueprint(admin_bp)
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
