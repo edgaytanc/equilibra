@@ -3,22 +3,85 @@
 {% block title %}Caso de {{ patient.username }}{% endblock %}
 
 {% block content %}
-    <style>
-        /* Reutilizamos los estilos del chat para la vista de conversación */
-        .chat-window { height: 65vh; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; border: 1px solid #eee; background: white; border-radius: 8px;}
-        .message { padding: 10px 15px; border-radius: 18px; max-width: 80%; line-height: 1.4; }
-        .user { background-color: #dcf8c6; align-self: flex-end; }
-        .bot { background-color: #f1f0f0; align-self: flex-start; }
-    </style>
-    
-    <h2>Historial de Conversación de: <strong>{{ patient.username }}</strong></h2>
-    <p>Estado actual: {{ patient.status }}</p>
-    <a href="{{ url_for('main.dashboard') }}">&larr; Volver al Dashboard</a>
-    <hr>
+<style>
+    /* Reutilizamos los mismos estilos de las burbujas de chat del index.html */
+    .chat-card {
+        height: 75vh;
+        display: flex;
+        flex-direction: column;
+    }
+    .chat-window {
+        flex-grow: 1;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    .message {
+        padding: 10px 15px;
+        border-radius: 18px;
+        max-width: 80%;
+        line-height: 1.4;
+    }
+    .message.user {
+        background-color: #0d6efd; /* Color primario de Bootstrap */
+        color: white;
+        align-self: flex-end;
+    }
+    .message.bot {
+        background-color: #e9ecef; /* Color de fondo sutil de Bootstrap */
+        color: black;
+        align-self: flex-start;
+    }
+    /* Estilo para el pequeño timestamp */
+    .timestamp {
+        font-size: 0.75rem;
+        color: #adb5bd; /* Color de texto muteado de Bootstrap */
+        margin-top: 5px;
+        text-align: right;
+    }
+</style>
 
-    <div class="chat-window">
-        {% for msg in messages %}
-            <div class="message {{ msg.sender }}">{{ msg.content | safe }}</div>
-        {% endfor %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-10 col-lg-8">
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary mb-3">
+            <i class="bi bi-arrow-left-circle"></i> Volver al Dashboard
+        </a>
+        
+        <div class="card shadow-lg chat-card">
+            <div class="card-header bg-light">
+                <h5 class="my-1">Historial de Conversación</h5>
+                <p class="mb-0 text-muted">
+                    Paciente: <strong>{{ patient.username }}</strong> | Estado: <span class="badge bg-info text-dark">{{ patient.status }}</span>
+                </p>
+            </div>
+
+            <div class="card-body p-4 chat-window" id="chat-window">
+                {% if messages %}
+                    {% for msg in messages %}
+                        <div class="message {{ msg.sender }}">
+                            <div>{{ msg.content | safe }}</div>
+                            <div class="timestamp">
+                                {{ msg.timestamp.strftime('%Y-%m-%d %H:%M') }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-center text-muted">No hay mensajes en este historial.</p>
+                {% endif %}
+            </div>
+        </div>
     </div>
+</div>
+
+<script>
+    // Pequeño script para asegurar que la ventana de chat
+    // inicie con el scroll al final, mostrando los mensajes más recientes.
+    window.onload = () => {
+        const chatWindow = document.getElementById('chat-window');
+        if (chatWindow) {
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+    };
+</script>
 {% endblock %}

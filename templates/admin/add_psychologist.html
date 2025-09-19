@@ -3,30 +3,51 @@
 {% block title %}Agregar Psicólogo{% endblock %}
 
 {% block content %}
-    <style>
-        .auth-form { max-width: 400px; margin: 40px auto; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        .auth-form h2 { text-align: center; color: #333; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; }
-        .form-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
-        .form-group button { width: 100%; padding: 10px; background-color: #007a7a; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
-    </style>
-    <form class="auth-form" method="POST" action="{{ url_for('admin.add_psychologist') }}">
-        <h2>Registrar Nuevo Psicólogo</h2>
-        <div class="form-group">
-            <label for="username">Nombre de usuario</label>
-            <input type="text" id="username" name="username" required>
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h2 class="card-title text-center mb-4">Registrar Nuevo Psicólogo</h2>
+                <form method="POST" action="{{ url_for('admin.add_psychologist') }}">
+                    
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Nombre de usuario</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                            <input type="text" class="form-control" id="username" name="username" placeholder="Ej: dra_hernandez" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Correo Electrónico</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                            <input type="email" class="form-control" id="email" name="email" placeholder="email@profesional.com" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Contraseña Provisional</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Asigna una contraseña inicial" required>
+                        </div>
+                        <div class="form-text">
+                            El psicólogo podrá cambiar esta contraseña más adelante.
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-dark">
+                            <i class="bi bi-check-circle-fill"></i> Crear Cuenta
+                        </button>
+                        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
         </div>
-        <div class="form-group">
-            <label for="email">Correo Electrónico</label>
-            <input type="email" id="email" name="email" required>
-        </div>
-        <div class="form-group">
-            <label for="password">Contraseña Provisional</label>
-            <input type="password" id="password" name="password" required>
-        </div>
-        <div class="form-group">
-            <button type="submit">Crear Psicólogo</button>
-        </div>
-    </form>
+    </div>
+</div>
 {% endblock %}

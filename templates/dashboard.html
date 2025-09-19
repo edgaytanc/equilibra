@@ -3,47 +3,84 @@
 {% block title %}Dashboard de Psicólogo{% endblock %}
 
 {% block content %}
-    <h2>Mis Casos Asignados</h2>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="mb-0">Dashboard de Casos</h2>
+    </div>
     <hr>
-    {% if assigned %}
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
-            <tr style="background-color: #d4edda;">
-                <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Nombre de Paciente</th>
-                <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Estado</th>
-                <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Acciones</th>
-            </tr>
-            {% for user in assigned %}
-            <tr>
-                <td style="padding: 8px; border: 1px solid #ddd;">{{ user.username }}</td>
-                <td style="padding: 8px; border: 1px solid #ddd;">{{ user.status }}</td>
-                <td style="padding: 8px; border: 1px solid #ddd;">
-                    <a href="{{ url_for('main.view_case', user_id=user.id) }}">Ver Conversación</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
-    {% else %}
-        <p>No tienes casos asignados en este momento.</p>
-    {% endif %}
 
-    <h2>Casos Pendientes de Asignación</h2>
-    <hr>
-    {% if unassigned %}
-        <table style="width: 100%; border-collapse: collapse;">
-            <tr style="background-color: #f2f2f2;">
-                <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Nombre de Usuario</th>
-                <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Acciones</th>
-            </tr>
-            {% for user in unassigned %}
-            <tr>
-                <td style="padding: 8px; border: 1px solid #ddd;">{{ user.username }}</td>
-                <td style="padding: 8px; border: 1px solid #ddd;">
-                    <a href="{{ url_for('main.view_case', user_id=user.id) }}">Ver Conversación</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
-    {% else %}
-        <p>No hay pacientes pendientes de revisión en este momento.</p>
-    {% endif %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-person-check-fill"></i> Mis Casos Asignados</h5>
+        </div>
+        <div class="card-body">
+            {% if assigned %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th scope="col">Nombre del Paciente</th>
+                                <th scope="col">Estado</th>
+                                <th scope="col" class="text-end">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in assigned %}
+                            <tr>
+                                <td>{{ user.username }}</td>
+                                <td>
+                                    <span class="badge bg-success">{{ user.status }}</span>
+                                </td>
+                                <td class="text-end">
+                                    <a href="{{ url_for('main.view_case', user_id=user.id) }}" class="btn btn-sm btn-outline-dark">
+                                        <i class="bi bi-eye-fill"></i> Ver Conversación
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-center text-muted">No tienes casos asignados en este momento.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-hourglass-split"></i> Casos Pendientes de Asignación</h5>
+        </div>
+        <div class="card-body">
+            {% if unassigned %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th scope="col">Nombre de Usuario</th>
+                                <th scope="col">Estado</th>
+                                <th scope="col" class="text-end">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in unassigned %}
+                            <tr>
+                                <td>{{ user.username }}</td>
+                                <td>
+                                    <span class="badge bg-warning text-dark">{{ user.status }}</span>
+                                </td>
+                                <td class="text-end">
+                                    <a href="{{ url_for('main.view_case', user_id=user.id) }}" class="btn btn-sm btn-outline-dark">
+                                        <i class="bi bi-eye-fill"></i> Ver Conversación
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-center text-muted">No hay pacientes que requieran revisión en este momento.</p>
+            {% endif %}
+        </div>
+    </div>
 {% endblock %}

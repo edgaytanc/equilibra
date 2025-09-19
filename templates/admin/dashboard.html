@@ -3,29 +3,49 @@
 {% block title %}Panel de Administración{% endblock %}
 
 {% block content %}
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h2>Gestión de Psicólogos</h2>
-        <a href="{{ url_for('admin.add_psychologist') }}" style="text-decoration: none; background-color: #007a7a; color: white; padding: 10px 15px; border-radius: 5px;">
-            + Agregar Psicólogo
-        </a>
+<div class="card shadow-sm">
+    <div class="card-header bg-dark text-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-person-rolodex"></i> Gestión de Psicólogos</h5>
+            <a href="{{ url_for('admin.add_psychologist') }}" class="btn btn-light btn-sm">
+                <i class="bi bi-plus-circle-fill"></i> Agregar Psicólogo
+            </a>
+        </div>
     </div>
-    <hr>
-    {% if psychologists %}
-        <table style="width: 100%; border-collapse: collapse;">
-            <tr style="background-color: #f2f2f2;">
-                <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">ID</th>
-                <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Nombre de Usuario</th>
-                <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Email</th>
-            </tr>
-            {% for psy in psychologists %}
-            <tr>
-                <td style="padding: 8px; border: 1px solid #ddd;">{{ psy.id }}</td>
-                <td style="padding: 8px; border: 1px solid #ddd;">{{ psy.username }}</td>
-                <td style="padding: 8px; border: 1px solid #ddd;">{{ psy.email }}</td>
-            </tr>
-            {% endfor %}
-        </table>
-    {% else %}
-        <p>No hay psicólogos registrados. ¡Agrega el primero!</p>
-    {% endif %}
+    <div class="card-body">
+        {% if psychologists %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">ID</th>
+                            <th scope="col">Nombre de Usuario</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">Rol</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for psy in psychologists %}
+                        <tr>
+                            <td>{{ psy.id }}</td>
+                            <td><i class="bi bi-person-circle text-muted"></i> {{ psy.username }}</td>
+                            <td>{{ psy.email }}</td>
+                            <td>
+                                <span class="badge bg-info text-dark">{{ psy.role }}</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center p-4">
+                <p class="lead text-muted">No hay psicólogos registrados.</p>
+                <a href="{{ url_for('admin.add_psychologist') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-lg"></i> ¡Agrega el primero!
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}
