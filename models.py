@@ -9,17 +9,18 @@ db = SQLAlchemy()
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
+    email = db.Column(db.String(150), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
 
-    # --- NUEVAS LÍNEAS ---
-    # Rol del usuario: 'patient' o 'psychologist'
     role = db.Column(db.String(50), nullable=False, default='patient')
-    # Estado del paciente para el sistema de triaje
     status = db.Column(db.String(50), nullable=False, default='active') 
     # 'active': estado normal
     # 'requires_review': marcado por la IA
     # 'assigned': un psicólogo está a cargo
     # --------------------
+    
+    assigned_psychologist_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    assigned_psychologist = db.relationship('User', remote_side=[id], backref='assigned_patients')
     
     messages = db.relationship('Message', backref='author', lazy=True)
 

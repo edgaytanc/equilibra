@@ -1,7 +1,8 @@
 # tasks.py
+import random
 from celery import Celery
 from flask_mail import Mail, Message
-from models import User
+from models import User, db
 from app import app  # Importamos la instancia 'app' de Flask desde app.py
 
 # Creamos una instancia de Mail, asociándola con la configuración de nuestra app Flask
@@ -69,3 +70,54 @@ def send_email_notification(patient_username):
         print(f"Error al enviar email: {e}")
         # Hacemos un reintento si la tarea falla, con un delay de 60 segundos
         raise send_email_notification.retry(exc=e, countdown=60)
+
+
+@celery.task
+def assign_patient_and_notify(patient_id):
+    """
+    Tarea para asignar un paciente a un psicólogo aleatorio y notificarle.
+    """
+    try:
+        # 1. Buscar al paciente
+        patient = User.query.get(patient_id)
+        if not patient:
+            print(f"No se encontró al paciente con ID {patient_id}")
+            return "Paciente no encontrado."
+
+        # 2. Buscar a todos los psicólogos disponibles
+        psychologists = User.query.filter_by(role='psychologist').all()
+
+        if psychologists:
+            # 3. Seleccionar uno aleatoriamente
+            assigned_psychologist = random.choice(psychologists)
+            
+            # 4. Asignar el psicólogo al paciente y cambiar el estado
+            patient.assigned_psychologist_id = assigned_psychologist.id
+            patient.status = 'assigned'
+            db.session.commit()
+
+            # 5. Enviar la notificación por correo
+            recipient_email = assigned_psychologist.email
+            subject = f"[Equilibra] Nuevo Caso Asignado: {patient.username}"
+            body = f"""
+            Hola Dr./Dra. {assigned_psychologist.username},
+
+            Se te ha asignado un nuevo caso para revisión: el paciente '{patient.username}'.
+
+            Por favor, inicia sesión en tu dashboard para ver los detalles de la conversación.
+
+            Gracias,
+            Sistema de Alertas de Equilibra
+            """
+            
+            msg = Message(subject, recipients=[recipient_email], body=body)
+            mail.send(msg)
+            
+            print(f"Email de notificación enviado a {recipient_email} sobre el caso {patient.username}")
+            return f"Email enviado a {recipient_email}"
+        else:
+            print("No se encontraron psicólogos para asignar el caso.")
+            return "No se encontraron psicólogos."
+    except Exception as e:
+        print(f"Error al asignar y notificar: {e}")
+        raise assign_patient_and_notify.retry(exc=e, countdown=60)

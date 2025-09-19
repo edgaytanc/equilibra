@@ -3,15 +3,38 @@
 {% block title %}Dashboard de Psicólogo{% endblock %}
 
 {% block content %}
-    <h2>Pacientes que Requieren Revisión</h2>
+    <h2>Mis Casos Asignados</h2>
     <hr>
-    {% if users %}
+    {% if assigned %}
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+            <tr style="background-color: #d4edda;">
+                <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Nombre de Paciente</th>
+                <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Estado</th>
+                <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Acciones</th>
+            </tr>
+            {% for user in assigned %}
+            <tr>
+                <td style="padding: 8px; border: 1px solid #ddd;">{{ user.username }}</td>
+                <td style="padding: 8px; border: 1px solid #ddd;">{{ user.status }}</td>
+                <td style="padding: 8px; border: 1px solid #ddd;">
+                    <a href="{{ url_for('main.view_case', user_id=user.id) }}">Ver Conversación</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No tienes casos asignados en este momento.</p>
+    {% endif %}
+
+    <h2>Casos Pendientes de Asignación</h2>
+    <hr>
+    {% if unassigned %}
         <table style="width: 100%; border-collapse: collapse;">
             <tr style="background-color: #f2f2f2;">
                 <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Nombre de Usuario</th>
                 <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Acciones</th>
             </tr>
-            {% for user in users %}
+            {% for user in unassigned %}
             <tr>
                 <td style="padding: 8px; border: 1px solid #ddd;">{{ user.username }}</td>
                 <td style="padding: 8px; border: 1px solid #ddd;">
@@ -21,6 +44,6 @@
             {% endfor %}
         </table>
     {% else %}
-        <p>No hay pacientes que requieran revisión en este momento.</p>
+        <p>No hay pacientes pendientes de revisión en este momento.</p>
     {% endif %}
 {% endblock %}

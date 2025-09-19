@@ -1,8 +1,8 @@
-"""Initial migration.
+"""Initial migration with users, messages, and psychologist assignment
 
-Revision ID: 273edcdb6482
+Revision ID: d0ab4f7726a9
 Revises: 
-Create Date: 2025-06-07 23:34:09.758455
+Create Date: 2025-09-19 12:14:50.812530
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '273edcdb6482'
+revision = 'd0ab4f7726a9'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -21,8 +21,14 @@ def upgrade():
     op.create_table('user',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('username', sa.String(length=150), nullable=False),
+    sa.Column('email', sa.String(length=150), nullable=False),
     sa.Column('password_hash', sa.String(length=256), nullable=False),
+    sa.Column('role', sa.String(length=50), nullable=False),
+    sa.Column('status', sa.String(length=50), nullable=False),
+    sa.Column('assigned_psychologist_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['assigned_psychologist_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('email'),
     sa.UniqueConstraint('username')
     )
     op.create_table('message',

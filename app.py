@@ -147,9 +147,9 @@ def chat():
                 
                 # --- INICIO: LLAMADA A LA TAREA ASÍNCRONA ---
                 # Importamos la tarea aquí para evitar problemas de importación circular
-                from tasks import send_email_notification
+                from tasks import assign_patient_and_notify
                 # Usamos .delay() para poner la tarea en la cola de Redis sin bloquear la app
-                send_email_notification.delay(patient_username=current_user.username)
+                assign_patient_and_notify.delay(patient_id=current_user.id)
                 # --- FIN: LLAMADA A LA TAREA ASÍNCRONA ---
 
     # 5. GUARDAR CAMBIOS Y DEVOLVER RESPUESTA
@@ -167,9 +167,12 @@ def dashboard():
         flash('Acceso no autorizado.')
         return redirect(url_for('main.chat_page'))
     
-    flagged_users = User.query.filter_by(role='patient', status='requires_review').all()
+    # --- LÓGICA MODIFICADA DEL DASHBOARD ---
+    # Mostrar tanto los casos asignados a este psicólogo como los que no tienen asignación
+    unassigned_users = User.query.filter_by(role='patient', status='requires_review').all()
+    assigned_to_me = User.query.filter_by(assigned_psychologist_id=current_user.id).all()
     
-    return render_template('dashboard.html', users=flagged_users)
+    return render_template('dashboard.html', unassigned=unassigned_users, assigned=assigned_to_me)
 
 
 @main_bp.route('/case/<int:user_id>')

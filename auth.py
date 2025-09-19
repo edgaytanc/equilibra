@@ -11,12 +11,20 @@ def register():
         username = request.form.get('username')
         password = request.form.get('password')
 
+        email = request.form.get('email')
+
         user = User.query.filter_by(username=username).first()
         if user:
             flash('El nombre de usuario ya existe.')
             return redirect(url_for('auth.register'))
+        
+        # --- NUEVA LÍNEA (comprobación de email) ---
+        email_exists = User.query.filter_by(email=email).first()
+        if email_exists:
+            flash('El correo electrónico ya está registrado.')
+            return redirect(url_for('auth.register'))
 
-        new_user = User(username=username)
+        new_user = User(username=username, email=email)
         new_user.set_password(password)
         
         db.session.add(new_user)
