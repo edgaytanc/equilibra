@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Psicólogo{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h2 class="card-title text-center mb-4">Editar Datos del Psicólogo</h2>
+                <form method="POST" action="{{ url_for('admin.edit_psychologist', psy_id=psychologist.id) }}">
+                    
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Nombre de usuario</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                            <input type="text" class="form-control" id="username" name="username" value="{{ psychologist.username }}" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Correo Electrónico</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ psychologist.email }}" required>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info" role="alert">
+                        <small><i class="bi bi-info-circle-fill"></i> La contraseña no se puede editar desde este formulario por seguridad.</small>
+                    </div>
+                    
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-dark">
+                            <i class="bi bi-check-circle-fill"></i> Guardar Cambios
+                        </button>
+                        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

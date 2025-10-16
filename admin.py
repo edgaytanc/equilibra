@@ -54,3 +54,54 @@ def add_psychologist():
         return redirect(url_for('admin.dashboard'))
         
     return render_template('admin/add_psychologist.html')
+
+# --- NUEVA RUTA PARA EDITAR PSICÓLOGOS ---
+@admin_bp.route('/edit_psychologist/<int:psy_id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def edit_psychologist(psy_id):
+    psychologist = User.query.get_or_404(psy_id)
+    if psychologist.role != 'psychologist':
+        flash('Este usuario no es un psicólogo.', 'danger')
+        return redirect(url_for('admin.dashboard'))
+
+    if request.method == 'POST':
+        new_username = request.form.get('username')
+        new_email = request.form.get('email')
+
+        # Verificar si el nuevo username o email ya están en uso por OTRO usuario
+        if new_username != psychologist.username and User.query.filter_by(username=new_username).first():
+            flash('El nuevo nombre de usuario ya está en uso.', 'warning')
+            return render_template('admin/edit_psychologist.html', psychologist=psychologist)
+        
+        if new_email != psychologist.email and User.query.filter_by(email=new_email).first():
+            flash('El nuevo correo electrónico ya está en uso.', 'warning')
+            return render_template('admin/edit_psychologist.html', psychologist=psychologist)
+
+        psychologist.username = new_username
+        psychologist.email = new_email
+        db.session.commit()
+        flash(f'Datos del psicólogo "{psychologist.username}" actualizados correctamente.', 'success')
+        return redirect(url_for('admin.dashboard'))
+
+    return render_template('admin/edit_psychologist.html', psychologist=psychologist)
+
+# --- NUEVA RUTA PARA ELIMINAR PSICÓLOGOS ---
+@admin_bp.route('/delete_psychologist/<int:psy_id>', methods=['POST'])
+@login_required
+@admin_required
+def delete_psychologist(psy_id):
+    psychologist_to_delete = User.query.get_or_404(psy_id)
+    if psychologist_to_delete.role != 'psychologist':
+        flash('Este usuario no es un psicólogo.', 'danger')
+        return redirect(url_for('admin.dashboard'))
+        
+    # Opcional: Reasignar pacientes antes de eliminar al psicólogo
+    # for patient in psychologist_to_delete.assigned_patients:
+    #     patient.assigned_psychologist_id = None
+    #     db.session.add(patient)
+
+    db.session.delete(psychologist_to_delete)
+    db.session.commit()
+    flash(f'El psicólogo "{psychologist_to_delete.username}" ha sido eliminado.', 'success')
+    return redirect(url_for('admin.dashboard'))

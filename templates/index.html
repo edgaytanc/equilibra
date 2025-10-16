@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Chat con Kai{% endblock %}
+{% block title %}Chat con Elena{% endblock %}
 
 {% block content %}
 <style>
@@ -45,13 +45,18 @@
             
             <div class="card-header bg-dark text-white text-center">
                 <h5 class="my-1">Conversando con ELENA</h5>
-                <small class="text-white-50">Puntuación de Ansiedad (NEG): <span id="anxiety-score">0.00</span></small>
+                <!-- INICIO: LÍNEA MODIFICADA -->
+                <!-- Se añade un nuevo span con id="negativity-label-text" para la etiqueta dinámica -->
+                <small class="text-white-50">
+                    Nivel de <span id="negativity-label-text">Ansiedad</span> (NEG): <span id="anxiety-score">0.00</span>
+                </small>
+                <!-- FIN: LÍNEA MODIFICADA -->
             </div>
             
             <div class="card-body p-4 chat-window" id="chat-window">
                 {% if not messages %}
                     <div class="message bot">
-                        Hola, soy Kai. Estoy aquí para escucharte. ¿Cómo te sientes hoy?
+                        Hola, soy Elena. Estoy aquí para escucharte. ¿Cómo te sientes hoy?
                     </div>
                 {% else %}
                     {% for msg in messages %}
@@ -77,13 +82,13 @@
 </div>
 
 <script>
-    // El script de JavaScript no necesita cambios, 
-    // pero lo incluimos aquí para que el archivo esté completo.
-    
     const chatForm = document.getElementById('chat-form');
     const messageInput = document.getElementById('message-input');
     const chatWindow = document.getElementById('chat-window');
     const anxietyScoreSpan = document.getElementById('anxiety-score');
+    
+    // --- NUEVA LÍNEA: Seleccionamos el nuevo span por su ID ---
+    const negativityLabelSpan = document.getElementById('negativity-label-text');
 
     // Auto-scroll al cargar
     window.onload = () => {
@@ -114,6 +119,9 @@
             
             appendMessage(data.bot_response, 'bot');
             anxietyScoreSpan.textContent = data.anxiety_score;
+            
+            // --- NUEVA LÍNEA: Actualizamos el texto de la etiqueta con el dato del backend ---
+            negativityLabelSpan.textContent = data.negativity_label;
 
         } catch (error) {
             console.error('Error al enviar el mensaje:', error);
