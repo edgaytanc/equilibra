@@ -4,6 +4,7 @@
 services:
   redis:
     image: "redis:alpine"
+    restart: unless-stopped
     ports:
       - "6379:6379"
 
@@ -22,6 +23,20 @@ services:
       - .env
     depends_on:
       - redis
+    restart: unless-stopped
+
+   # 👇 Nuevo servicio: Nginx
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"  # descomenta después si usas HTTPS
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - web
+    restart: unless-stopped
 
   worker:
     build: .
@@ -32,3 +47,4 @@ services:
       - .env
     depends_on:
       - redis
+    restart: unless-stopped

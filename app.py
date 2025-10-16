@@ -296,7 +296,6 @@ def view_case(user_id):
 # Registrar los Blueprints
 app.register_blueprint(auth_bp)
 app.register_blueprint(main_bp)
-
 app.register_blueprint(admin_bp)
 
 if __name__ == '__main__':
