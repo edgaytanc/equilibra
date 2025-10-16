@@ -1,7 +1,7 @@
 # app.py
 import os
 from dotenv import load_dotenv
-
+import json
 from models import db, User, Message
 from auth import auth_bp
 
@@ -244,14 +244,38 @@ def dashboard():
 @main_bp.route('/case/<int:user_id>')
 @login_required
 def view_case(user_id):
-    if current_user.role != 'psychologist':
-        flash('Acceso no autorizado.')
+    if current_user.role not in ['psychologist', 'admin']:
+        flash('Acceso no autorizado.', 'danger')
         return redirect(url_for('main.chat_page'))
         
     patient = User.query.get_or_404(user_id)
     messages = Message.query.filter_by(user_id=patient.id).order_by(Message.timestamp.asc()).all()
     
-    return render_template('view_case.html', patient=patient, messages=messages)
+    # --- INICIO: LÓGICA PARA PREPARAR DATOS DE LA GRÁFICA ---
+    chart_labels = []
+    chart_data = []
+
+    # Iteramos solo sobre los mensajes del usuario para analizar su sentimiento
+    user_messages = [msg for msg in messages if msg.sender == 'user']
+
+    for msg in user_messages:
+        # Formateamos la fecha para que sea legible en la gráfica
+        chart_labels.append(msg.timestamp.strftime('%d/%m %H:%M'))
+        
+        # Analizamos el sentimiento de cada mensaje
+        detection_result = detector(msg.content)[0]
+        score = detection_result['score'] if detection_result['label'] == 'NEG' else 0.0
+        chart_data.append(round(score, 2))
+    # --- FIN: LÓGICA PARA PREPARAR DATOS DE LA GRÁFICA ---
+
+    return render_template(
+        'view_case.html', 
+        patient=patient, 
+        messages=messages,
+        # Pasamos los datos a la plantilla de forma segura usando json.dumps
+        chart_labels=json.dumps(chart_labels),
+        chart_data=json.dumps(chart_data)
+    )
 
 # Registrar los Blueprints
 app.register_blueprint(auth_bp)

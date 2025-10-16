@@ -47,6 +47,23 @@
         <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary mb-3">
             <i class="bi bi-arrow-left-circle"></i> Volver al Dashboard
         </a>
+
+        <!-- INICIO: NUEVO CARD PARA LA GRÁFICA DE SENTIMIENTO -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light">
+                <h5 class="my-1"><i class="bi bi-graph-up"></i> Evolución del Sentimiento (Negatividad)</h5>
+            </div>
+            <div class="card-body">
+                {% if chart_data and chart_data != '[]' %}
+                    <div style="height: 300px;">
+                        <canvas id="sentimentChart"></canvas>
+                    </div>
+                {% else %}
+                    <p class="text-center text-muted">No hay suficientes datos de mensajes del paciente para generar una gráfica.</p>
+                {% endif %}
+            </div>
+        </div>
+        <!-- FIN: NUEVO CARD PARA LA GRÁFICA -->
         
         <div class="card shadow-lg chat-card">
             <div class="card-header bg-light">
@@ -74,14 +91,67 @@
     </div>
 </div>
 
+!-- INICIO: SCRIPTS PARA LA GRÁFICA Y EL CHAT -->
+
+<!-- 1. Incluimos la librería Chart.js desde un CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Pequeño script para asegurar que la ventana de chat
-    // inicie con el scroll al final, mostrando los mensajes más recientes.
+    // 2. Script para asegurar que el chat inicie con el scroll al final
     window.onload = () => {
         const chatWindow = document.getElementById('chat-window');
         if (chatWindow) {
             chatWindow.scrollTop = chatWindow.scrollHeight;
         }
     };
+
+    // 3. Script para renderizar la gráfica
+    document.addEventListener('DOMContentLoaded', () => {
+        const ctx = document.getElementById('sentimentChart');
+        if (!ctx) return; // Si no hay canvas, no hacemos nada
+
+        // Recibimos los datos de Flask de forma segura
+        const chartLabels = JSON.parse('{{ chart_labels | safe }}');
+        const chartData = JSON.parse('{{ chart_data | safe }}');
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    label: 'Nivel de Negatividad',
+                    data: chartData,
+                    fill: true,
+                    borderColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 1.0, // La puntuación va de 0 a 1
+                        title: {
+                            display: true,
+                            text: 'Puntuación'
+                        }
+                    },
+                    x: {
+                         title: {
+                            display: true,
+                            text: 'Fecha y Hora del Mensaje'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false // Ocultamos la leyenda para un look más limpio
+                    }
+                }
+            }
+        });
+    });
 </script>
 {% endblock %}
