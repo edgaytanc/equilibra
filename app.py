@@ -240,6 +240,22 @@ def dashboard():
     
     return render_template('dashboard.html', unassigned=unassigned_users, assigned=assigned_to_me)
 
+@main_bp.route('/assign_case/<int:user_id>', methods=['POST'])
+@login_required
+def assign_case(user_id):
+    if current_user.role != 'psychologist':
+        flash('Acción no autorizada.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    patient = User.query.get_or_404(user_id)
+    if patient.status == 'requires_review':
+        patient.assigned_psychologist_id = current_user.id
+        patient.status = 'assigned'
+        db.session.commit()
+        flash(f'El caso de "{patient.username}" te ha sido asignado correctamente.', 'success')
+    else:
+        flash(f'El caso de "{patient.username}" ya ha sido asignado.', 'warning')
+    return redirect(url_for('main.dashboard'))
+
 
 @main_bp.route('/case/<int:user_id>')
 @login_required

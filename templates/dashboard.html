@@ -69,9 +69,16 @@
                                     <span class="badge bg-warning text-dark">{{ user.status }}</span>
                                 </td>
                                 <td class="text-end">
-                                    <a href="{{ url_for('main.view_case', user_id=user.id) }}" class="btn btn-sm btn-outline-dark">
-                                        <i class="bi bi-eye-fill"></i> Ver Conversación
+                                    <!-- INICIO: BOTÓN MODIFICADO Y NUEVO FORMULARIO -->
+                                    <a href="{{ url_for('main.view_case', user_id=user.id) }}" class="btn btn-sm btn-outline-dark me-2">
+                                        <i class="bi bi-eye-fill"></i> Ver
                                     </a>
+                                    <form action="{{ url_for('main.assign_case', user_id=user.id) }}" method="POST" style="display: inline;">
+                                        <button type="submit" class="btn btn-sm btn-success">
+                                            <i class="bi bi-person-plus-fill"></i> Asignarme
+                                        </button>
+                                    </form>
+                                    <!-- FIN: BOTÓN MODIFICADO Y NUEVO FORMULARIO -->
                                 </td>
                             </tr>
                             {% endfor %}

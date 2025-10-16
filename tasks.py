@@ -94,9 +94,12 @@ def assign_patient_and_notify(patient_id):
             # 4. Asignar el psicólogo al paciente y cambiar el estado
             patient.assigned_psychologist_id = assigned_psychologist.id
             patient.status = 'assigned'
-            db.session.commit()
 
-            # 5. Enviar la notificación por correo
+            # --- CAMBIO IMPORTANTE: Guardamos en la BD ANTES de enviar el email ---
+            db.session.commit()
+            print(f"Paciente {patient.username} asignado a {assigned_psychologist.username} en la base de datos.")
+
+            # 5. Intentar enviar la notificación por correo (si esto falla, la asignación ya está guardada)
             recipient_email = assigned_psychologist.email
             subject = f"[Equilibra] Nuevo Caso Asignado: {patient.username}"
             body = f"""
